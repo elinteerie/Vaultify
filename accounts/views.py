@@ -19,6 +19,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from rest_framework.permissions import IsAuthenticated
 import logging
+import pytz
+WAT = pytz.timezone('Africa/Lagos')
 from rest_framework import generics
 from .serializers import AccessCodeSerializer
 from .models import AccessCode
@@ -35,7 +37,7 @@ PAYSTACK_SECRET_KEY = 'sk_live_43fc893ff9d7a6dd07302e43aae78602c0dc62c8'  # Repl
 
 # Helper function to get the base URL for email links
 def get_base_url():
-    return getattr(settings, 'BASE_URL', 'http://10.0.2.2:8000')
+    return getattr(settings, 'BASE_URL', 'https://vaultify-43wm.onrender.com')
 
 logger = logging.getLogger(__name__)
 
@@ -334,24 +336,23 @@ class AccessCodeVerifyView(APIView):
             logger.warning(f"Access code not found: {code}")
             return Response({"error": "Invalid access code"}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user.profile.role != 'Security Personnel':
-            logger.warning(f"Unauthorized verification attempt by {request.user.email}")
-            return Response({"error": "Only security personnel can verify access codes"}, status=status.HTTP_403_FORBIDDEN)
+       
 
         if not access_code.is_active:
             logger.warning(f"Access code is inactive: {code}")
             return Response({"error": "Access code is inactive"}, status=status.HTTP_400_BAD_REQUEST)
 
-        now = timezone.now()
+        # Use WAT timezone for consistency with the app
+        now = timezone.now().astimezone(WAT)
         if now < access_code.valid_from or now > access_code.valid_to:
-            logger.warning(f"Access code expired or not yet valid: {code}")
-            return Response({"error": "Access code is expired or not yet valid"}, status=status.HTTP_400_BAD_REQUEST)
+            logger.warning(f"Access code expired or not yet valid: {code}, Now: {now}, Valid: {access_code.valid_from} to {access_code.valid_to}")
+            return Response({"error": f"Access code is expired or not yet valid (checked at {now})"}, status=status.HTTP_400_BAD_REQUEST)
 
         if access_code.current_uses >= access_code.max_uses:
             logger.warning(f"Access code max uses exceeded: {code}")
             return Response({"error": "Access code has reached maximum uses"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Increment current_uses
+        # Increment current_uses and update is_active
         access_code.current_uses += 1
         if access_code.current_uses >= access_code.max_uses:
             access_code.is_active = False
@@ -370,10 +371,17 @@ class AccessCodeVerifyView(APIView):
             except Exception as e:
                 logger.error(f"Failed to send notification for code {code}: {e}")
 
+        # Return detailed response for frontend to update state
         serializer = AccessCodeSerializer(access_code)
-        logger.info(f"Access code verified: {code}")
-        return Response(serializer.data, status=status.HTTP_200_OK)
-        
+        response_data = {
+            **serializer.data,
+            "message": "Access code verified successfully",
+            "verified_count": AccessCode.objects.filter(current_uses__gt=0).count(),
+            "unapproved_count": AccessCode.objects.filter(current_uses=0).count()
+        }
+        logger.info(f"Access code verified: {code}, Current uses: {access_code.current_uses}")
+        return Response(response_data, status=status.HTTP_200_OK)
+
 class AccessCodeVerifiedCountView(APIView):
     def get(self, request):
         verified_count = AccessCode.objects.filter(current_uses__gt=0).count()
@@ -383,7 +391,7 @@ class AccessCodeUnapprovedCountView(APIView):
     def get(self, request):
         unapproved_count = AccessCode.objects.filter(current_uses=0).count()
         return Response({"unapproved_count": unapproved_count}, status=status.HTTP_200_OK)
-
+    
 class AlertCreateView(generics.CreateAPIView):
     queryset = Alert.objects.all()
     serializer_class = AlertSerializer
@@ -428,7 +436,6 @@ class VisitorCheckinListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Return AccessCode objects with current_uses > 0 (verified/check-in)
         return AccessCode.objects.filter(current_uses__gt=0).order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
