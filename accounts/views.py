@@ -127,15 +127,9 @@ class AccessCodeCreateView(generics.CreateAPIView):
         try:
             serializer.save(creator=self.request.user)
         except IntegrityError as e:
-            if "unique constraint" in str(e).lower():
-                return Response(
-                    {"error": "An access code with this value already exists."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            return Response(
-                {"error": "Failed to create access code due to a database error."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            # The perform_create method should not return Response objects.
+            # Instead, raise the exception to be handled by the framework.
+            raise e
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PaystackWebhookView(APIView):
