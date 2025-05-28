@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class AccessCodeSerializer(serializers.ModelSerializer):
     creator_name = serializers.CharField(source='creator.first_name', read_only=True)
+    visitor_email = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = AccessCode
@@ -32,10 +33,7 @@ class AccessCodeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'valid_to': "Valid to date must be after valid from date."
                 })
-        # Make visitor_email optional by removing it from required fields validation
-        if 'visitor_email' not in data:
-            data['visitor_email'] = ''
-        return data
+        return data  # Removed the visitor_email default assignment since it's now optional
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:

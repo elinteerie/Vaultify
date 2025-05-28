@@ -5079,3 +5079,7 @@ C:\Users\sxc\Downloads\Vaultify-master2\Vaultify-master\vaultify\accounts\urls.p
 Watching for file changes with StatReloader
 Watching for file changes with StatReloader
 Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Bad Request: /api/access-code/verify/
+Notification sent to e1545@example.com for code 123421
+Access code verified: 123421, Current uses: 1
