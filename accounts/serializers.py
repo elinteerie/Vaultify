@@ -32,6 +32,9 @@ class AccessCodeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'valid_to': "Valid to date must be after valid from date."
                 })
+        # Make visitor_email optional by removing it from required fields validation
+        if 'visitor_email' not in data:
+            data['visitor_email'] = ''
         return data
 
 class UserProfileSerializer(serializers.ModelSerializer):
