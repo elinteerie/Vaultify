@@ -26,7 +26,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('check-email-verification/', CheckEmailVerificationView.as_view(), name='check-email-verification'),
     path('access-code/create/', AccessCodeCreateView.as_view(), name='access-code-create'),
-    path('access-code/verify/', AccessCodeVerifyView.as_view(), name='access_code_verify'),
     path('access-code/verified-count/', AccessCodeVerifiedCountView.as_view(), name='access-code-verified-count'),
     path('access-code/unapproved-count/', AccessCodeUnapprovedCountView.as_view(), name='access-code-unapproved-count'),
     path('alerts/', AlertListView.as_view(), name='alert-list'),
@@ -38,4 +37,6 @@ urlpatterns = [
     path('lostfound/', LostFoundItemListView.as_view(), name='lostfound-list'),
     path('lostfound/create/', LostFoundItemCreateView.as_view(), name='lostfound-create'),
     path('lostfound/<int:pk>/',LostFoundItemDetailView.as_view(), name='lost_found_detail'),
+    path('access-code/verify/', AccessCodeVerifyView.as_view(), name='access_code_verify'),
+
 ]
