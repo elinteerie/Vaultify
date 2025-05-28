@@ -32,6 +32,10 @@ class AccessCodeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'valid_to': "Valid to date must be after valid from date."
                 })
+        if 'visitor_email' not in data or not data['visitor_email']:
+            raise serializers.ValidationError({
+                'visitor_email': "This field is required."
+            })
         return data
 
 class UserProfileSerializer(serializers.ModelSerializer):
