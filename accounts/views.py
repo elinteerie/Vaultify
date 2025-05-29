@@ -320,6 +320,10 @@ class AccessCodeVerifyView(APIView):
 
     def post(self, request):
         code = request.data.get('code')
+        user = request.user
+        auth_header = request.headers.get('Authorization', 'No Authorization header')
+        logger.debug(f"AccessCodeVerifyView called by user: {user.email}, Authorization: {auth_header}, code: {code}")
+
         if not code:
             logger.error("No code provided in verification request")
             return Response({"error": "Access code is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -330,21 +334,31 @@ class AccessCodeVerifyView(APIView):
             logger.warning(f"Access code not found: {code}")
             return Response({"error": "Invalid access code"}, status=status.HTTP_404_NOT_FOUND)
 
-       
-
         if not access_code.is_active:
             logger.warning(f"Access code is inactive: {code}")
             return Response({"error": "Access code is inactive"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Use WAT timezone for consistency with the app
         now = timezone.now().astimezone(WAT)
-        if now < access_code.valid_from or now > access_code.valid_to:
-            logger.warning(f"Access code expired or not yet valid: {code}, Now: {now}, Valid: {access_code.valid_from} to {access_code.valid_to}")
-            return Response({"error": f"Access code is expired or not yet valid (checked at {now})"}, status=status.HTTP_400_BAD_REQUEST)
+        if now < access_code.valid_from:
+            logger.warning(f"Access code not yet valid: {code}, Now: {now}, Valid from: {access_code.valid_from}")
+            return Response(
+                {"error": f"Access code is not yet valid (valid from {access_code.valid_from})"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if now > access_code.valid_to:
+            logger.warning(f"Access code expired: {code}, Now: {now}, Valid to: {access_code.valid_to}")
+            return Response(
+                {"error": f"Access code has expired (valid until {access_code.valid_to})"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if access_code.current_uses >= access_code.max_uses:
             logger.warning(f"Access code max uses exceeded: {code}")
-            return Response({"error": "Access code has reached maximum uses"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"Access code has reached maximum uses ({access_code.max_uses})"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Increment current_uses and update is_active
         access_code.current_uses += 1
@@ -352,6 +366,7 @@ class AccessCodeVerifyView(APIView):
             access_code.is_active = False
         access_code.save()
 
+        # Send notification if enabled
         if access_code.notify_on_use:
             try:
                 send_mail(
@@ -365,17 +380,48 @@ class AccessCodeVerifyView(APIView):
             except Exception as e:
                 logger.error(f"Failed to send notification for code {code}: {e}")
 
-        # Return detailed response for frontend to update state
+        # Prepare response data
         serializer = AccessCodeSerializer(access_code)
         response_data = {
-            **serializer.data,
             "message": "Access code verified successfully",
+            "code": access_code.code,
+            "visitorName": access_code.visitor_name,
+            "visitorEmail": access_code.visitor_email,
+            "visitorPhone": access_code.visitor_phone,
+            "hostName": access_code.creator.get_full_name() or access_code.creator.email,
+            "status": "Verified" if access_code.current_uses > 0 else "Pending",
+            "accessArea": access_code.gate,
+            "validFrom": access_code.valid_from.isoformat(),
+            "validTo": access_code.valid_to.isoformat(),
             "verified_count": AccessCode.objects.filter(current_uses__gt=0).count(),
             "unapproved_count": AccessCode.objects.filter(current_uses=0).count()
         }
         logger.info(f"Access code verified: {code}, Current uses: {access_code.current_uses}")
         return Response(response_data, status=status.HTTP_200_OK)
+class AccessCodeRetrieveView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, code):
+        try:
+            access_code = AccessCode.objects.get(code=code)
+        except AccessCode.DoesNotExist:
+            logger.warning(f"Access code not found: {code}")
+            return Response({"error": "Invalid access code"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AccessCodeSerializer(access_code)
+        response_data = {
+            "code": access_code.code,
+            "visitorName": access_code.visitor_name,
+            "visitorEmail": access_code.visitor_email,
+            "visitorPhone": access_code.visitor_phone,
+            "hostName": access_code.creator.get_full_name() or access_code.creator.email,
+            "status": "Verified" if access_code.current_uses > 0 else "Pending",
+            "accessArea": access_code.gate,
+            "validFrom": access_code.valid_from.isoformat(),
+            "validTo": access_code.valid_to.isoformat(),
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+    
 class AccessCodeVerifiedCountView(APIView):
     def get(self, request):
         verified_count = AccessCode.objects.filter(current_uses__gt=0).count()

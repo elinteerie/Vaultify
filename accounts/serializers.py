@@ -12,6 +12,22 @@ logger = logging.getLogger(__name__)
 class AccessCodeSerializer(serializers.ModelSerializer):
     creator_name = serializers.CharField(source='creator.first_name', read_only=True)
 
+    def to_internal_value(self, data):
+        # Map camelCase keys to snake_case keys expected by the serializer
+        camel_to_snake = {
+            'visitorName': 'visitor_name',
+            'visitorEmail': 'visitor_email',
+            'visitorPhone': 'visitor_phone',
+            'validFrom': 'valid_from',
+            'validTo': 'valid_to',
+            'maxUses': 'max_uses',
+            'notifyOnUse': 'notify_on_use',
+        }
+        for camel_key, snake_key in camel_to_snake.items():
+            if camel_key in data:
+                data[snake_key] = data.pop(camel_key)
+        return super().to_internal_value(data)
+
     class Meta:
         model = AccessCode
         fields = [

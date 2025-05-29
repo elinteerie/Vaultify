@@ -2,7 +2,7 @@ from django.urls import path
 
 
 from .views import (
-    AccessCodeByUserListView, AccessCodeDeactivateView, AccessCodeUnapprovedCountView, AccessCodeVerifiedCountView, AccessCodeVerifyView, AlertCreateView, AlertListView, LostFoundItemDetailView, SignupView, LoginView, UserUpdateView, VerifyAndCreditView, VerifyEmailView,
+    AccessCodeByUserListView, AccessCodeDeactivateView, AccessCodeRetrieveView, AccessCodeUnapprovedCountView, AccessCodeVerifiedCountView, AccessCodeVerifyView, AlertCreateView, AlertListView, LostFoundItemDetailView, SignupView, LoginView, UserUpdateView, VerifyAndCreditView, VerifyEmailView,
     ResendVerificationEmailView, GoogleSignInView,
     PasswordResetRequestView, PasswordResetConfirmView, DeleteAccountView,
     LogoutView, CheckEmailVerificationView, LoginWithIdView,
@@ -38,5 +38,6 @@ urlpatterns = [
     path('lostfound/create/', LostFoundItemCreateView.as_view(), name='lostfound-create'),
     path('lostfound/<int:pk>/',LostFoundItemDetailView.as_view(), name='lost_found_detail'),
     path('access-code/verify/', AccessCodeVerifyView.as_view(), name='access_code_verify'),
+    path('access-code/<str:code>/retrieve/', AccessCodeRetrieveView.as_view(), name='access_code_retrieve'),
 
 ]
