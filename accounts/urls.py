@@ -37,7 +37,7 @@ urlpatterns = [
     path('lostfound/', LostFoundItemListView.as_view(), name='lostfound-list'),
     path('lostfound/create/', LostFoundItemCreateView.as_view(), name='lostfound-create'),
     path('lostfound/<int:pk>/',LostFoundItemDetailView.as_view(), name='lost_found_detail'),
-    path('access-code/verify/', AccessCodeVerifyView.as_view(), name='access_code_verify'),
+    path('api/access-code/verify/', AccessCodeVerifyView.as_view(), name='access_code_verify'),
     path('access-code/<str:code>/retrieve/', AccessCodeRetrieveView.as_view(), name='access_code_retrieve'),
-
+   
 ]
