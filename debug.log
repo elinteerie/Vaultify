@@ -5085,3 +5085,33 @@ Notification sent to e1545@example.com for code 123421
 Access code verified: 123421, Current uses: 1
 Watching for file changes with StatReloader
 Bad Request: /api/access-code/create/
+Watching for file changes with StatReloader
+Access code not found: 123450
+Not Found: /api/access-code/verify/
+Access code not found: 123450
+Not Found: /api/access-code/verify/
+Bad Request: /api/access-code/create/
+Bad Request: /api/access-code/create/
+Access code expired: 123450, Now: 2025-05-29 10:33:49.387368+01:00, Valid to: 2025-05-29 00:00:00+00:00
+Bad Request: /api/access-code/verify/
+Bad Request: /api/access-code/create/
+Bad Request: /api/access-code/verify/
+Access code expired: 123651, Now: 2025-05-29 10:34:46.737987+01:00, Valid to: 2025-05-29 00:00:00+00:00
+Bad Request: /api/access-code/verify/
+Bad Request: /api/access-code/create/
+Access code expired: 123650, Now: 2025-05-29 10:35:58.468953+01:00, Valid to: 2025-05-29 00:00:00+00:00
+Bad Request: /api/access-code/verify/
+C:\Users\sxc\Downloads\Vaultify-master2\Vaultify-master\vaultify\accounts\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\sxc\Downloads\Vaultify-master2\Vaultify-master\vaultify\accounts\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\sxc\Downloads\Vaultify-master2\Vaultify-master\vaultify\accounts\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\sxc\Downloads\Vaultify-master2\Vaultify-master\vaultify\accounts\views.py changed, reloading.
+Watching for file changes with StatReloader
+Notification sent to e1545@example.com for code 123650
+Access code verified: 123650, Current uses: 1
+Access code is inactive: 123650
+Bad Request: /api/access-code/verify/
+Access code is inactive: 123650
+Bad Request: /api/access-code/verify/

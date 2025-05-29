@@ -315,6 +315,8 @@ class LoginWithIdView(APIView):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
         
+from datetime import timedelta, time
+
 class AccessCodeVerifyView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -340,16 +342,24 @@ class AccessCodeVerifyView(APIView):
 
         # Use WAT timezone for consistency with the app
         now = timezone.now().astimezone(WAT)
+
+        # Adjust valid_to to end of day (23:59:59) for inclusive expiration check
+        valid_to_end_of_day = access_code.valid_to.astimezone(WAT).replace(
+            hour=23, minute=59, second=59, microsecond=999999
+        )
+
+        logger.debug(f"Current time: {now}, AccessCode valid_from: {access_code.valid_from}, valid_to (end of day): {valid_to_end_of_day}")
+
         if now < access_code.valid_from:
             logger.warning(f"Access code not yet valid: {code}, Now: {now}, Valid from: {access_code.valid_from}")
             return Response(
                 {"error": f"Access code is not yet valid (valid from {access_code.valid_from})"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if now > access_code.valid_to:
-            logger.warning(f"Access code expired: {code}, Now: {now}, Valid to: {access_code.valid_to}")
+        if now > valid_to_end_of_day:
+            logger.warning(f"Access code expired: {code}, Now: {now}, Valid to: {valid_to_end_of_day}")
             return Response(
-                {"error": f"Access code has expired (valid until {access_code.valid_to})"},
+                {"error": f"Access code has expired (valid until {valid_to_end_of_day})"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
