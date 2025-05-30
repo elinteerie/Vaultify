@@ -329,6 +329,19 @@ class AccessCodeCreateView(generics.CreateAPIView):
             logger.error(f"Error creating access code: {e}")
             raise e
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import AccessCode
+from .serializers import AccessCodeSerializer
+from django.utils import timezone
+import logging
+import pytz
+from rest_framework.permissions import IsAuthenticated
+
+WAT = pytz.timezone('Africa/Lagos')
+logger = logging.getLogger(__name__)
+
 class AccessCodeVerifyView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -336,7 +349,7 @@ class AccessCodeVerifyView(APIView):
         code = request.data.get('code')
         user = request.user
         auth_header = request.headers.get('Authorization', 'No Authorization header')
-        logger.debug(f"AccessCodeVerifyView called by user: {user.email}, Authorization: {auth.get_header}, code: {code}")
+        logger.debug(f"AccessCodeVerifyView called by user: {user.email}, Authorization: {auth_header}, code: {code}")
 
         if not code:
             logger.error("No code provided in verification request")
@@ -348,17 +361,17 @@ class AccessCodeVerifyView(APIView):
             logger.warning(f"Access code not found: {code}")
             return Response({"error": "Invalid access code"}, status=status.HTTP_404_NOT_FOUND)
 
-        now = datetime.now(WAT)
+        now = timezone.now().astimezone(WAT)
         if now < access_code.valid_from:
             logger.warning(f"Access code not yet valid: {code}, Now: {now}, Valid from: {access_code.valid_from}")
             return Response(
-                {"error": "Access code is not yet valid: {fAccess code valid_from}"},
+                {"error": f"Access code is not yet valid: {access_code.valid_from}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         if now > access_code.valid_to:
             logger.warning(f"Access code expired: {code}, Now: {now}, Valid to: {access_code.valid_to}")
             return Response(
-                {"error": "Access code has expired: {fAccess code valid_to}"},
+                {"error": f"Access code has expired: {access_code.valid_to}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         if not access_code.is_active:
@@ -368,20 +381,30 @@ class AccessCodeVerifyView(APIView):
             logger.warning(f"Access code max uses reached: {code}")
             return Response({"error": "Access code has reached its maximum usage limit"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Update current_uses if verification succeeds
+        # Update current_uses and deactivate if max_uses reached
         access_code.current_uses += 1
+        if access_code.current_uses >= access_code.max_uses:
+            access_code.is_active = False
         access_code.save()
+
+        # Optionally send notification if notify_on_use is True
+        if access_code.notify_on_use:
+            # Implement notification logic (e.g., email or push notification)
+            pass
 
         return Response({
             'visitorName': access_code.visitor_name,
-            'hostName': access_code.creator.get_full_name() or 'N/A',
+            'visitorEmail': access_code.visitor_email,
+            'visitorPhone': access_code.visitor_phone,
+            'hostName': access_code.creator.get_full_name() or access_code.creator.email,
             'status': 'valid',
             'accessArea': access_code.gate,
             'code': access_code.code,
-            'verified_count': 1,  # Example value
-            'unapproved_count': 0,  # Example value
+            'validFrom': access_code.valid_from.isoformat(),
+            'validTo': access_code.valid_to.isoformat(),
+            'verified_count': access_code.current_uses,
+            'unapproved_count': 0 if access_code.current_uses > 0 else 1,
         }, status=status.HTTP_200_OK)
-    permission_classes = [IsAuthenticated]
 
     def get(self, request, code):
         try:
