@@ -44,6 +44,18 @@ logger = logging.getLogger(__name__)
 class SignupView(APIView):
     def post(self, request):
         logger.info(f"Received signup data: {request.data}")
+        # Normalize email to lowercase before processing
+        if 'email' in request.data:
+            request.data._mutable = True if hasattr(request.data, '_mutable') else False
+            if request.data._mutable:
+                request.data['email'] = request.data['email'].strip().lower()
+            else:
+                # If request.data is immutable (e.g., QueryDict), create a mutable copy
+                mutable_data = request.data.copy()
+                mutable_data['email'] = mutable_data['email'].strip().lower()
+                request._full_data = mutable_data
+                request.data = mutable_data
+
         serializer = UserSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             user = serializer.save()
@@ -484,9 +496,7 @@ class VisitorCheckinListView(generics.ListAPIView):
         return AccessCode.objects.filter(current_uses__gt=0).order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
-        user_role = request.user.profile.role
-        if user_role not in ['Security Personnel', 'Residence']:
-            return Response({"error": "Unauthorized access"}, status=status.HTTP_403_FORBIDDEN)
+        # Removed user role check to allow all authenticated users access
         queryset = self.get_queryset()
         serializer = AccessCodeSerializer(queryset, many=True)
         response_data = {

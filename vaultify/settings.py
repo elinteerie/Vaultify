@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -71,11 +73,20 @@ REST_FRAMEWORK = {
 
 
 
-# Email configuration for console logging
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'test@example.com'
 
-ROOT_URLCONF = 'vaultify.urls'
+
+load_dotenv()  # Load environment variables from .env file
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')  # Environment variable
+DEFAULT_FROM_EMAIL = 'vaultifyltd@gmail.com'
+
+BASE_URL = 'https://vaultify-43wm.onrender.com'
+
 
 TEMPLATES = [
     {
