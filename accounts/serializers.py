@@ -58,11 +58,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
     wallet_balance = serializers.DecimalField(max_digits=10, decimal_places=2, source='profile.wallet_balance', read_only=True)
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'profile', 'wallet_balance',
-]
+        fields = ['id', 'email', 'first_name', 'last_name', 'profile', 'wallet_balance', 'password']
         extra_kwargs = {
             # Removed read_only for profile to allow nested updates
         }
@@ -84,8 +84,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         profile_data = data.get('profile', {})
-        if self.instance is None:
-            # Creation requires role in profile
+        if self.instance is None:  # Creation
             if not profile_data.get('role'):
                 logger.error("Role is missing in profile data")
                 raise serializers.ValidationError({
@@ -96,6 +95,11 @@ class UserSerializer(serializers.ModelSerializer):
                 logger.error(f"User with email {email} already exists")
                 raise serializers.ValidationError({
                     'email': "A user with this email already exists."
+                })
+            if 'password' not in data or not data['password']:
+                logger.error("Password is missing in signup data")
+                raise serializers.ValidationError({
+                    'password': "This field is required."
                 })
         else:
             # For updates, if profile is present, validate role if provided
@@ -108,7 +112,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         profile_data = validated_data.pop('profile', {})
-        password = validated_data.pop('password')
+        password = validated_data.pop('password')  # This will now work as password is enforced
         logger.info(f"Creating user with profile data: {profile_data}")
         user = User(
             username=validated_data['email'],
@@ -144,7 +148,6 @@ class UserSerializer(serializers.ModelSerializer):
         profile.save()
         logger.info(f"User updated with role: {profile.role}")
         return instance
-
 class AlertSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alert
