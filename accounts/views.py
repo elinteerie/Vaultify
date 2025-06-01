@@ -44,28 +44,31 @@ logger = logging.getLogger(__name__)
 class SignupView(APIView):
     def post(self, request):
         logger.info(f"Received signup data: {request.data}")
-        # Normalize email to lowercase before processing
-        if 'email' in request.data:
-            request.data._mutable = True if hasattr(request.data, '_mutable') else False
-            if request.data._mutable:
-                request.data['email'] = request.data['email'].strip().lower()
-            else:
-                # If request.data is immutable (e.g., QueryDict), create a mutable copy
-                mutable_data = request.data.copy()
-                mutable_data['email'] = mutable_data['email'].strip().lower()
-                request._full_data = mutable_data
-                request.data = mutable_data
 
-        serializer = UserSerializer(data=request.data, context={'request': request})
+        # Make a safe mutable copy of request.data
+        data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+
+        # Normalize email to lowercase
+        if 'email' in data:
+            data['email'] = data['email'].strip().lower()
+
+        serializer = UserSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             user = serializer.save()
+
+            # Auth token
             token, _ = AuthToken.objects.get_or_create(user=user)
+
+            # Email verification
             verification_token = str(uuid.uuid4())
             user.profile.email_verification_token = verification_token
-            # Ensure role is saved
-            profile_data = request.data.get('profile', {})
+
+            # Assign role from profile (if provided)
+            profile_data = data.get('profile', {})
             user.profile.role = profile_data.get('role', user.profile.role)
             user.profile.save()
+
+            # Send verification email
             try:
                 send_mail(
                     'Verify Your Email',
@@ -77,11 +80,12 @@ class SignupView(APIView):
                 logger.info(f"Verification email sent to {user.email}")
             except Exception as e:
                 logger.error(f"Failed to send verification email: {e}")
+
             logger.info(f"User created: {serializer.data}, Role: {user.profile.role}")
             return Response({'token': token.key, 'user': serializer.data}, status=status.HTTP_201_CREATED)
+
         logger.error(f"Signup errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 class CheckEmailVerificationView(APIView):
     permission_classes = [IsAuthenticated]
 
