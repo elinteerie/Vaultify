@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0007_add_wallet_balance_to_userprofile'),
+        ('accounts', '0007_userprofile_wallet_balance'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
