@@ -148,11 +148,21 @@ class UserSerializer(serializers.ModelSerializer):
         profile.save()
         logger.info(f"User updated with role: {profile.role}")
         return instance
+from rest_framework import serializers
+
 class AlertSerializer(serializers.ModelSerializer):
+    sender_role = serializers.SerializerMethodField()
+
     class Meta:
         model = Alert
-        fields = ['id', 'message', 'alert_type', 'recipients', 'urgency_level', 'timestamp', 'sender']
-        read_only_fields = ['timestamp', 'sender']
+        fields = ['id', 'message', 'alert_type', 'recipients', 'urgency_level', 'timestamp', 'sender', 'sender_role']
+        read_only_fields = ['timestamp', 'sender', 'sender_role']
+
+    def get_sender_role(self, obj):
+        try:
+            return obj.sender.profile.role
+        except Exception:
+            return None
 
     def validate_alert_type(self, value):
         valid_types = [choice[0] for choice in Alert.ALERT_TYPES]

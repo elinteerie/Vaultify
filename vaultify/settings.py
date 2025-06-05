@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-%w2x7gp8myt=aasngm9-fjn5%eqn5+)!ng136s68&f3acj^_m)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
 
 
 # Application definition
@@ -59,7 +59,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-ALLOWED_HOSTS = ['*'] 
+ALLOWED_HOSTS = ['vaultify.lexisdevelopmentltd.com', 'vaultify.lexisfinance.com', 'vaultify-43wm.onrender.com'] 
 # or specify your IP
 CORS_ALLOW_ALL_ORIGINS = True  # only for development
 
@@ -129,10 +129,20 @@ LOGGING = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'blessedaNN',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
+
+
+
+
+
 
 ROOT_URLCONF = 'vaultify.urls'
 

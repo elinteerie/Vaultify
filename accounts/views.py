@@ -462,11 +462,35 @@ class AlertCreateView(generics.CreateAPIView):
         serializer.save(sender=self.request.user)
 
 class AlertListView(generics.ListAPIView):
-    queryset = Alert.objects.all().order_by('-timestamp')
     serializer_class = AlertSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['alert_type', 'urgency_level', 'recipients']
+
+    def get_queryset(self):
+        user = self.request.user
+        try:
+            user_role = user.profile.role
+        except Exception:
+            user_role = None
+        if not user_role:
+            return Alert.objects.none()
+
+        # Define opposite role mapping for cross-role alert fetching
+        opposite_role_map = {
+            'Residence': 'Security Personnel',
+            'Security Personnel': 'Residence',
+        }
+
+        opposite_role = opposite_role_map.get(user_role)
+
+        # Filter alerts where recipients contain user_role and sender's role is opposite_role
+        # or alerts sent by the user themselves (optional)
+        return Alert.objects.filter(
+            recipients__contains=[user_role]
+        ).filter(
+            models.Q(sender__profile__role=opposite_role) | models.Q(sender=user)
+        ).order_by('-timestamp')
 
 from rest_framework.parsers import MultiPartParser, FormParser
 
