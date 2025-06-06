@@ -7,6 +7,8 @@ from .views import (
     AccessCodeDeactivateView, AccessCodeVerifiedCountView, AccessCodeUnapprovedCountView,
     VisitorCheckinListView, AlertCreateView, AlertListView, LostFoundItemCreateView,
     LostFoundItemListView, LostFoundItemDetailView, VerifyAndCreditView,
+    ResidenceUsersListView, SecurityPersonnelUsersListView,
+    ResidenceUsersCountView, SecurityPersonnelUsersCountView,
 )
 
 urlpatterns = [
@@ -44,4 +46,10 @@ urlpatterns = [
 
     # Payments
     path('verify-and-credit/', VerifyAndCreditView.as_view(), name='verify-and-credit'),
+
+    # User role based lists and counts
+    path('residence-users/', ResidenceUsersListView.as_view(), name='residence-users-list'),
+    path('security-personnel-users/', SecurityPersonnelUsersListView.as_view(), name='security-personnel-users-list'),
+    path('residence-users/count/', ResidenceUsersCountView.as_view(), name='residence-users-count'),
+    path('security-personnel-users/count/', SecurityPersonnelUsersCountView.as_view(), name='security-personnel-users-count'),
 ]

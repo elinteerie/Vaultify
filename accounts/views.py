@@ -512,6 +512,11 @@ class LostFoundItemListView(generics.ListAPIView):
     search_fields = ['item_type', 'description', 'location', 'contact_info']
 
 from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from .serializers import UserSerializer
 
 class LostFoundItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = LostFoundItem.objects.all()
@@ -542,6 +547,34 @@ class VisitorCheckinListView(generics.ListAPIView):
             ]
         }
         return Response(response_data)
+
+class ResidenceUsersListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(profile__role='Residence', profile__is_email_verified=True)
+
+class SecurityPersonnelUsersListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(profile__role='Security Personnel', profile__is_email_verified=True)
+
+class ResidenceUsersCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        count = User.objects.filter(profile__role='Residence', profile__is_email_verified=True).count()
+        return Response({'count': count})
+
+class SecurityPersonnelUsersCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        count = User.objects.filter(profile__role='Security Personnel', profile__is_email_verified=True).count()
+        return Response({'count': count})
 class AccessCodeByUserListView(APIView):
     permission_classes = [IsAuthenticated]
 
