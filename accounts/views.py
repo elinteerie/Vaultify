@@ -561,10 +561,13 @@ class AlertListView(generics.ListAPIView):
 
         # Filter alerts where recipients contain user_role and sender's role is opposite_role
         # or alerts sent by the user themselves (optional)
+        deleted_alert_ids = user.deleted_alerts.values_list('alert_id', flat=True)
         return Alert.objects.filter(
             recipients__contains=[user_role]
         ).filter(
             models.Q(sender__profile__role=opposite_role) | models.Q(sender=user)
+        ).exclude(
+            id__in=deleted_alert_ids
         ).order_by('-timestamp')
 
 from rest_framework.parsers import MultiPartParser, FormParser
