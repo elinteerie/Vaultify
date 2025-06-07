@@ -195,19 +195,29 @@ from urllib.parse import urlencode
 class VerifyEmailView(APIView):
     def get(self, request, token):
         redirect_url = getattr(settings, 'EMAIL_VERIFICATION_REDIRECT_URL', None)
-        if not redirect_url:
-            return Response({'error': 'Frontend redirect URL not configured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         try:
             profile = UserProfile.objects.get(email_verification_token=token)
             profile.is_email_verified = True
             profile.email_verification_token = ''
             profile.save()
             logger.info(f"Email verified for user {profile.user.email}")
-            params = urlencode({'status': 'success'})
-            return redirect(f"{redirect_url}?{params}")
+            if redirect_url:
+                params = urlencode({'status': 'success'})
+                return redirect(f"{redirect_url}?{params}")
+            else:
+                return Response({
+                    'status': 'success',
+                    'message': 'Your email has been verified successfully. You can now log in.'
+                }, status=status.HTTP_200_OK)
         except UserProfile.DoesNotExist:
-            params = urlencode({'status': 'failure'})
-            return redirect(f"{redirect_url}?{params}")
+            if redirect_url:
+                params = urlencode({'status': 'failure'})
+                return redirect(f"{redirect_url}?{params}")
+            else:
+                return Response({
+                    'status': 'failure',
+                    'message': 'Invalid or expired verification token. Please request a new verification email.'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
 class ResendVerificationEmailView(APIView):
     def post(self, request):
