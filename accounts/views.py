@@ -188,17 +188,26 @@ class PaystackWebhookView(APIView):
 
         return JsonResponse({'status': 'ignored'}, status=200)
 
+from django.shortcuts import redirect
+from django.conf import settings
+from urllib.parse import urlencode
+
 class VerifyEmailView(APIView):
     def get(self, request, token):
+        redirect_url = getattr(settings, 'EMAIL_VERIFICATION_REDIRECT_URL', None)
+        if not redirect_url:
+            return Response({'error': 'Frontend redirect URL not configured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         try:
             profile = UserProfile.objects.get(email_verification_token=token)
             profile.is_email_verified = True
             profile.email_verification_token = ''
             profile.save()
             logger.info(f"Email verified for user {profile.user.email}")
-            return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
+            params = urlencode({'status': 'success'})
+            return redirect(f"{redirect_url}?{params}")
         except UserProfile.DoesNotExist:
-            return Response({'error': 'Invalid or expired token'}, status=status.HTTP_400_BAD_REQUEST)
+            params = urlencode({'status': 'failure'})
+            return redirect(f"{redirect_url}?{params}")
 
 class ResendVerificationEmailView(APIView):
     def post(self, request):
