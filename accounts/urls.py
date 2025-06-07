@@ -9,6 +9,7 @@ from .views import (
     LostFoundItemListView, LostFoundItemDetailView, VerifyAndCreditView,
     ResidenceUsersListView, SecurityPersonnelUsersListView,
     ResidenceUsersCountView, SecurityPersonnelUsersCountView,
+    AlertDeleteView,
 )
 
 urlpatterns = [
@@ -38,6 +39,7 @@ urlpatterns = [
     # Alerts
     path('alerts/', AlertListView.as_view(), name='alert-list'),
     path('alerts/create/', AlertCreateView.as_view(), name='alert-create'),
+    path('alerts/<int:alert_id>/delete/', AlertDeleteView.as_view(), name='alert-delete'),
 
     # Lost and Found
     path('lostfound/', LostFoundItemListView.as_view(), name='lostfound-list'),

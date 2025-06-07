@@ -72,6 +72,17 @@ class Alert(models.Model):
     def __str__(self):
         return f"{self.alert_type} - {self.message[:50]}"
 
+class UserDeletedAlert(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='deleted_alerts')
+    alert = models.ForeignKey(Alert, on_delete=models.CASCADE, related_name='deleted_by_users')
+    deleted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'alert')
+
+    def __str__(self):
+        return f"Deleted Alert {self.alert.id} by User {self.user.username}"
+
 class LostFoundItem(models.Model):
     ITEM_TYPES = [
         ('Lost', 'Lost'),

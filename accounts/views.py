@@ -215,8 +215,8 @@ class VerifyEmailView(APIView):
                 return redirect(f"{redirect_url}?{params}")
             else:
                 return Response({
-                    'status': 'failure',
-                    'message': 'Invalid or expired verification token. Please request a new verification email.'
+                    'status': 'failure, you might have received another email please verify with that', 
+                    'message': 'Invalid token. Please request a new verification email.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
 class ResendVerificationEmailView(APIView):
@@ -368,8 +368,8 @@ class AccessCodeCreateView(generics.CreateAPIView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import AccessCode
-from .serializers import AccessCodeSerializer
+from .models import AccessCode, UserDeletedAlert, Alert
+from .serializers import AccessCodeSerializer, AlertSerializer
 from django.utils import timezone
 import logging
 import pytz
@@ -377,6 +377,61 @@ from rest_framework.permissions import IsAuthenticated
 
 WAT = pytz.timezone('Africa/Lagos')
 logger = logging.getLogger(__name__)
+
+class AlertDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, alert_id):
+        user = request.user
+        try:
+            alert = Alert.objects.get(id=alert_id)
+        except Alert.DoesNotExist:
+            return Response({'error': 'Alert not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if already deleted
+        deleted, created = UserDeletedAlert.objects.get_or_create(user=user, alert=alert)
+        if created:
+            logger.info(f"User {user.username} deleted alert {alert_id}")
+        else:
+            logger.info(f"User {user.username} had already deleted alert {alert_id}")
+
+        return Response({'message': 'Alert deleted successfully'}, status=status.HTTP_200_OK)
+
+class AlertListView(generics.ListAPIView):
+    serializer_class = AlertSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['alert_type', 'urgency_level', 'recipients']
+
+    def get_queryset(self):
+        user = self.request.user
+        try:
+            user_role = user.profile.role
+        except Exception:
+            user_role = None
+        if not user_role:
+            return Alert.objects.none()
+
+        # Define opposite role mapping for cross-role alert fetching
+        opposite_role_map = {
+            'Residence': 'Security Personnel',
+            'Security Personnel': 'Residence',
+        }
+
+        opposite_role = opposite_role_map.get(user_role)
+
+        # Get alerts deleted by the user
+        deleted_alert_ids = user.deleted_alerts.values_list('alert_id', flat=True)
+
+        # Filter alerts where recipients contain user_role and sender's role is opposite_role
+        # or alerts sent by the user themselves (optional)
+        return Alert.objects.filter(
+            recipients__contains=[user_role]
+        ).filter(
+            models.Q(sender__profile__role=opposite_role) | models.Q(sender=user)
+        ).exclude(
+            id__in=deleted_alert_ids
+        ).order_by('-timestamp')
 
 class AccessCodeVerifyView(APIView):
     permission_classes = [IsAuthenticated]
