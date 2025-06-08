@@ -5136,3 +5136,29 @@ Traceback (most recent call last):
     ...<9 lines>...
     )
 RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to 127.0.0.1:8000/api/access-code/verify/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+Watching for file changes with StatReloader
+Received signup data: {'email': 'e15487@example.com', 'first_name': 'John', 'last_name': 'Doe', 'password': 'blessedaNN1@', 'profile': {'phone_number': '1234567890', 'role': 'Residence', 'estate': 'Sunny Personnel', 'estate_email': 'estate24@example.com', 'pin': '1236', 'plan': 'premium'}}
+Creating user with profile data: {'phone_number': '1234567890', 'role': 'Residence', 'estate': 'Sunny Personnel', 'estate_email': 'estate24@example.com', 'pin': '1236', 'plan': 'premium'}
+Existing UserProfile updated with role: Residence
+UserProfile phone_number after save: 1234567890
+UserProfile phone_number after refresh: 1234567890
+Verification email sent to e15487@example.com
+User created: {'id': 13, 'email': 'e15487@example.com', 'first_name': 'John', 'last_name': 'Doe', 'profile': {'phone_number': None, 'role': 'Residence', 'estate': None, 'estate_email': None, 'pin': None, 'plan': None, 'wallet_balance': '0.00'}, 'wallet_balance': '0.00'}, Role: Residence
+C:\Users\sxc\Downloads\Vaultify-master2\Vaultify-master\vaultify\accounts\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Received signup data: {'email': 'e154878@example.com', 'first_name': 'John', 'last_name': 'Doe', 'password': 'blessedaNN1@', 'profile': {'phone_number': '123456789', 'role': 'Residence', 'estate': 'Sunny Personnel', 'estate_email': 'estate24@example.com', 'pin': '1236', 'plan': 'premium'}}
+Creating user with profile data: {'phone_number': '123456789', 'role': 'Residence', 'estate': 'Sunny Personnel', 'estate_email': 'estate24@example.com', 'pin': '1236', 'plan': 'premium'}
+Existing UserProfile updated with role: Residence
+UserProfile phone_number after save: 123456789
+UserProfile phone_number after refresh: 123456789
+Verification email sent to e154878@example.com
+User created: {'id': 14, 'email': 'e154878@example.com', 'first_name': 'John', 'last_name': 'Doe', 'profile': {'phone_number': None, 'role': 'Residence', 'estate': None, 'estate_email': None, 'pin': None, 'plan': None, 'wallet_balance': '0.00'}, 'wallet_balance': '0.00'}, Role: Residence
+C:\Users\sxc\Downloads\Vaultify-master2\Vaultify-master\vaultify\accounts\views.py changed, reloading.
+Watching for file changes with StatReloader
+Received signup data: {'email': 'e1548788@example.com', 'first_name': 'John', 'last_name': 'Doe', 'password': 'blessedaNN1@', 'profile': {'phone_number': '123456789', 'role': 'Residence', 'estate': 'Sunny Personnel', 'estate_email': 'estate24@example.com', 'pin': '1236', 'plan': 'premium'}}
+Creating user with profile data: {'phone_number': '123456789', 'role': 'Residence', 'estate': 'Sunny Personnel', 'estate_email': 'estate24@example.com', 'pin': '1236', 'plan': 'premium'}
+Existing UserProfile updated with role: Residence
+UserProfile phone_number after save: 123456789
+UserProfile phone_number after refresh: 123456789
+Verification email sent to e1548788@example.com
+User created: {'id': 15, 'email': 'e1548788@example.com', 'first_name': 'John', 'last_name': 'Doe', 'profile': {'phone_number': '123456789', 'role': 'Residence', 'estate': 'Sunny Personnel', 'estate_email': 'estate24@example.com', 'pin': '1236', 'plan': 'premium', 'wallet_balance': '0.00'}, 'wallet_balance': '0.00'}, Role: Residence, Phone: 123456789

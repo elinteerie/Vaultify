@@ -60,14 +60,17 @@ class SignupView(APIView):
             # Auth token
             token, _ = AuthToken.objects.get_or_create(user=user)
 
+            # Update profile with all fields from request data
+            profile_data = data.get('profile', {})
+            profile = user.profile
+            for attr, value in profile_data.items():
+                setattr(profile, attr, value)
+            profile.save()
+
             # Email verification
             verification_token = str(uuid.uuid4())
-            user.profile.email_verification_token = verification_token
-
-            # Assign role from profile (if provided)
-            profile_data = data.get('profile', {})
-            user.profile.role = profile_data.get('role', user.profile.role)
-            user.profile.save()
+            profile.email_verification_token = verification_token
+            profile.save()
 
             # Send verification email
             try:
@@ -82,8 +85,8 @@ class SignupView(APIView):
             except Exception as e:
                 logger.error(f"Failed to send verification email: {e}")
 
-            logger.info(f"User created: {serializer.data}, Role: {user.profile.role}")
-            return Response({'token': token.key, 'user': serializer.data}, status=status.HTTP_201_CREATED)
+            logger.info(f"User created: {serializer.data}, Role: {user.profile.role}, Phone: {user.profile.phone_number}")
+            return Response({'token': token.key, 'user': UserSerializer(user).data}, status=status.HTTP_201_CREATED)
 
         logger.error(f"Signup errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

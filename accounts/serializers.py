@@ -130,6 +130,11 @@ class UserSerializer(serializers.ModelSerializer):
             logger.info(f"Existing UserProfile updated with role: {profile_data.get('role')}")
         else:
             logger.info(f"UserProfile created with role: {profile_data.get('role')}")
+        # Debug log to confirm phone_number saved
+        logger.info(f"UserProfile phone_number after save: {profile.phone_number}")
+        # Explicitly refresh profile from DB to ensure latest data
+        profile.refresh_from_db()
+        logger.info(f"UserProfile phone_number after refresh: {profile.phone_number}")
         return user
 
     def update(self, instance, validated_data):
@@ -146,7 +151,7 @@ class UserSerializer(serializers.ModelSerializer):
         for attr, value in profile_data.items():
             setattr(profile, attr, value)
         profile.save()
-        logger.info(f"User updated with role: {profile.role}")
+        logger.info(f"User updated with role: {profile.role}, phone_number: {profile.phone_number}")
         return instance
 from rest_framework import serializers
 
