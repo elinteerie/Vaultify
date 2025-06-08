@@ -40,6 +40,7 @@ urlpatterns = [
     path('alerts/', AlertListView.as_view(), name='alert-list'),
     path('alerts/create/', AlertCreateView.as_view(), name='alert-create'),
     path('alerts/<int:alert_id>/delete/', AlertDeleteView.as_view(), name='alert-delete'),
+    path('alerts/<int:alert_id>/', AlertDeleteView.as_view(), name='alert-delete-delete'),
 
     # Lost and Found
     path('lostfound/', LostFoundItemListView.as_view(), name='lostfound-list'),

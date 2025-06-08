@@ -5162,3 +5162,7 @@ UserProfile phone_number after save: 123456789
 UserProfile phone_number after refresh: 123456789
 Verification email sent to e1548788@example.com
 User created: {'id': 15, 'email': 'e1548788@example.com', 'first_name': 'John', 'last_name': 'Doe', 'profile': {'phone_number': '123456789', 'role': 'Residence', 'estate': 'Sunny Personnel', 'estate_email': 'estate24@example.com', 'pin': '1236', 'plan': 'premium', 'wallet_balance': '0.00'}, 'wallet_balance': '0.00'}, Role: Residence, Phone: 123456789
+Watching for file changes with StatReloader
+Forbidden: /api/alerts/
+User emmanuelosaro510@gmail.com deleted alert 5 via DELETE
+Method Not Allowed: /api/alerts/

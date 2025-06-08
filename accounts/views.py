@@ -400,6 +400,22 @@ class AlertDeleteView(APIView):
 
         return Response({'message': 'Alert deleted successfully'}, status=status.HTTP_200_OK)
 
+    def delete(self, request, alert_id):
+        user = request.user
+        try:
+            alert = Alert.objects.get(id=alert_id)
+        except Alert.DoesNotExist:
+            return Response({'error': 'Alert not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if already deleted
+        deleted, created = UserDeletedAlert.objects.get_or_create(user=user, alert=alert)
+        if created:
+            logger.info(f"User {user.username} deleted alert {alert_id} via DELETE")
+        else:
+            logger.info(f"User {user.username} had already deleted alert {alert_id} via DELETE")
+
+        return Response({'message': 'Alert deleted successfully'}, status=status.HTTP_200_OK)
+
 class AlertListView(generics.ListAPIView):
     serializer_class = AlertSerializer
     permission_classes = [IsAuthenticated]
