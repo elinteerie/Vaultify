@@ -4,7 +4,7 @@ services:
   web:
     build: .
     container_name: vaultify_web
-    command: gunicorn vaultify.wsgi.application:application --bind 0.0.0.0:8000
+    command: gunicorn vaultify.wsgi:application --bind 0.0.0.0:8000 
     volumes:
       - .:/app
     ports:
