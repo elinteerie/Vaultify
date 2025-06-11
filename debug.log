@@ -5289,3 +5289,6 @@ Traceback (most recent call last):
   File "C:\Users\ramso\Documents\GitHub\Vaultify\venv\Lib\site-packages\django\db\backends\dummy\base.py", line 20, in complain
     raise ImproperlyConfigured(
 django.core.exceptions.ImproperlyConfigured: settings.DATABASES is improperly configured. Please supply the ENGINE value. Check settings documentation for more details.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
